@@ -10,23 +10,74 @@
 
 ## 安装
 
-### 从 GitHub Releases 下载
+### 从 GitHub Releases 下载（推荐）
 
-到 [Releases 页面](../../releases) 下载对应平台的压缩包，解压得到 `swiss` 二进制，放进 `PATH` 即可：
+到 [Releases 页面](../../releases) 下载对应平台的包：
+
+| 平台 | 文件 |
+|---|---|
+| macOS（Apple Silicon，M1/M2/M3/M4） | `swiss-aarch64-apple-darwin.tar.gz` |
+| Windows x64 | `swiss-x86_64-pc-windows-msvc.zip` |
+| Linux x64（Ubuntu / Debian / Fedora 等主流发行版） | `swiss-x86_64-unknown-linux-gnu.tar.gz` |
+
+每个 Release 附带 `checksums.txt`（SHA-256 校验和），下载后建议验证：
 
 ```sh
-# macOS / Linux 示例
-tar xzf swiss-aarch64-apple-darwin.tar.gz
-sudo mv swiss /usr/local/bin/
+# macOS / Linux
+shasum -a 256 -c --ignore-missing checksums.txt
+
+# Windows (PowerShell)
+Get-FileHash swiss-*.zip -Algorithm SHA256
 ```
 
-或放到 `~/.local/bin`（通常已在 PATH 中）。
-
-### 从源码构建
+**macOS 解压安装**：
 
 ```sh
+tar xzf swiss-aarch64-apple-darwin.tar.gz
+sudo mkdir -p /usr/local/bin
+sudo mv swiss /usr/local/bin/
+swiss --help
+```
+
+> 也可以放到 `~/.local/bin` 或 `/opt/homebrew/bin` 等已在 PATH 的目录。
+
+**Windows 解压安装**：解压 `zip` 得到 `swiss.exe`，建议放到专用目录（如 `C:\Tools\swiss\`），再把该目录加入 PATH（设置 → 系统 → 高级系统设置 → 环境变量 → Path → 编辑 → 新建），然后新开终端运行 `swiss --help`。
+
+**Linux 解压安装**：
+
+```sh
+tar xzf swiss-x86_64-unknown-linux-gnu.tar.gz
+sudo mv swiss /usr/local/bin/
+swiss --help
+```
+
+### 其他 Linux 架构 / 发行版（源码构建）
+
+官方 Release 只提供 x64 (glibc) 版本。其他环境的用户请从源码构建：
+
+```sh
+# 需要 Rust 工具链：https://rustup.rs
+cargo install --git https://github.com/<你的用户名>/swiss.git
+```
+
+或克隆后本地安装：
+
+```sh
+git clone https://github.com/<你的用户名>/swiss.git
+cd swiss
 cargo install --path .
 ```
+
+常见环境对应关系：
+
+| 环境 | 构建方式 |
+|---|---|
+| x64 + glibc（绝大多数发行版） | 直接下载 Release 包 |
+| x64 + musl（Alpine 等） | `cargo install --git ...`（rustup 默认 target 即可） |
+| ARM64（树莓派、ARM 服务器、国产 ARM 盒子） | `cargo install --git ...` |
+| 其他架构 | `cargo install --git ...` |
+
+> 从源码构建需要有对应平台的 Rust 工具链，参见 [rustup.rs](https://rustup.rs)。
 
 ## 使用
 
@@ -101,10 +152,10 @@ cargo build --release          # 构建
 推送 `v*.*.*` 格式的 tag 触发自动发布：
 
 ```sh
-git tag v0.1.0 && git push --tags
+git tag v0.1.1 && git push --tags
 ```
 
-CI 会自动构建 macOS（Apple Silicon + Intel）/ Linux（glibc + musl）/ Windows 二进制并发布到 Release。
+CI 自动构建三个平台（macOS Apple Silicon / Windows x64 / Linux x64 glibc）的二进制，生成 SHA-256 校验和，并发布到 GitHub Release（自动生成 changelog）。
 
 ## License
 
